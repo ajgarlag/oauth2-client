@@ -2,7 +2,7 @@
 
 namespace League\OAuth2\Client\Test\Grant;
 
-use GuzzleHttp\ClientInterface;
+use Psr\Http\Client\ClientInterface;
 use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
@@ -70,7 +70,7 @@ abstract class GrantTestCase extends TestCase
         /** @var ClientInterface & MockInterface $client */
         $client = Mockery::spy(ClientInterface::class)->makePartial();
         $client
-            ->shouldReceive('send')
+            ->shouldReceive('sendRequest')
             ->once()
             ->withArgs(function ($request) {
                 parse_str((string) $request->getBody(), $body);

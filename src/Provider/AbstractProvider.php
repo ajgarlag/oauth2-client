@@ -17,6 +17,8 @@ namespace League\OAuth2\Client\Provider;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 use GuzzleHttp\Exception\BadResponseException;
+use Psr\Http\Client\ClientInterface;
+use Http\Discovery\Psr18ClientDiscovery;
 use League\OAuth2\Client\Grant\AbstractGrant;
 use League\OAuth2\Client\Grant\GrantFactory;
 use League\OAuth2\Client\OptionProvider\OptionProviderInterface;
@@ -126,11 +128,7 @@ abstract class AbstractProvider
         $this->setRequestFactory($collaborators['requestFactory']);
 
         if (empty($collaborators['httpClient'])) {
-            $client_options = $this->getAllowedClientOptions($options);
-
-            $collaborators['httpClient'] = new HttpClient(
-                array_intersect_key($options, array_flip($client_options))
-            );
+            $collaborators['httpClient'] = Psr18ClientDiscovery::find();
         }
         $this->setHttpClient($collaborators['httpClient']);
 
@@ -209,10 +207,10 @@ abstract class AbstractProvider
     /**
      * Sets the HTTP client instance.
      *
-     * @param  HttpClientInterface $client
+     * @param  ClientInterface $client
      * @return self
      */
-    public function setHttpClient(HttpClientInterface $client)
+    public function setHttpClient(ClientInterface $client)
     {
         $this->httpClient = $client;
 
@@ -222,7 +220,7 @@ abstract class AbstractProvider
     /**
      * Returns the HTTP client instance.
      *
-     * @return HttpClientInterface
+     * @return ClientInterface
      */
     public function getHttpClient()
     {
@@ -605,7 +603,7 @@ abstract class AbstractProvider
      */
     public function getResponse(RequestInterface $request)
     {
-        return $this->getHttpClient()->send($request);
+        return $this->getHttpClient()->sendRequest($request);
     }
 
     /**

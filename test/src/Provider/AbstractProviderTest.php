@@ -7,7 +7,7 @@ use Mockery;
 use ReflectionClass;
 use UnexpectedValueException;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\ClientInterface;
+use Psr\Http\Client\ClientInterface;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Test\Provider\Fake as MockProvider;
 use League\OAuth2\Client\Grant\AbstractGrant;
@@ -217,7 +217,7 @@ class AbstractProviderTest extends TestCase
 
 
         $client = Mockery::spy(ClientInterface::class, [
-            'send' => $response,
+            'sendRequest' => $response,
         ]);
 
         $provider->setHttpClient($client);
@@ -232,7 +232,7 @@ class AbstractProviderTest extends TestCase
         $this->assertArrayHasKey('email', $user->toArray());
 
         $client
-            ->shouldHaveReceived('send')
+            ->shouldHaveReceived('sendRequest')
             ->once()
             ->withArgs(function ($request) use ($url) {
                 return $request->getMethod() === 'GET'
@@ -265,7 +265,7 @@ class AbstractProviderTest extends TestCase
             ->andReturn('text/html');
 
         $client = Mockery::mock(ClientInterface::class, [
-            'send' => $response,
+            'sendRequest' => $response,
         ]);
 
         $provider->setHttpClient($client);
@@ -361,7 +361,7 @@ class AbstractProviderTest extends TestCase
             ->andReturn('application/json');
 
         $client = Mockery::spy(ClientInterface::class, [
-            'send' => $response,
+            'sendRequest' => $response,
         ]);
 
         $provider->setHttpClient($client);
@@ -420,7 +420,7 @@ class AbstractProviderTest extends TestCase
 
         $client = Mockery::mock(ClientInterface::class);
         $client
-            ->shouldReceive('send')
+            ->shouldReceive('sendRequest')
             ->andThrow(new BadResponseException('test exception', $request, $response));
 
         $provider->setHttpClient($client);

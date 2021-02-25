@@ -14,7 +14,8 @@
 
 namespace League\OAuth2\Client\Tool;
 
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\RequestsFactoryInterface;
+use Http\Discovery\Psr17FactoryDiscovery;
 
 /**
  * Used to produce PSR-7 Request instances.
@@ -23,6 +24,13 @@ use GuzzleHttp\Psr7\Request;
  */
 class RequestFactory
 {
+    private $requestFactory;
+
+    public function __construct(RequestsFactoryInterface $requestFactory = null)
+    {
+        $this->requestFactory = null === $requestFactory ? Psr17FactoryDiscovery::findRequestFactory() : $requestFactory;
+    }
+
     /**
      * Creates a PSR-7 Request instance.
      *
@@ -41,7 +49,21 @@ class RequestFactory
         $body = null,
         $version = '1.1'
     ) {
-        return new Request($method, $uri, $headers, $body, $version);
+        $request = $this->requestFactory->createRequest(strtoupper($method), $uri)
+            ->withProtocolVersion($version)
+        ;
+
+        foreach ($headers as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
+        if (null !== $body) {
+            $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+            $streamBody = is_resource($body) ? $streamFactory->createFromResource($body) : $streamFactory->createStream($body);
+            $request = $request->withBody($streamBody);
+        }
+        
+        return $request;
     }
 
     /**
